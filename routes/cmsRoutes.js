@@ -22,6 +22,6 @@ router.get('/home-page', cmsController.getHomepageCMS);
 router.put('/', protect, adminOnly, cmsController.updateCMSData);
 router.put('/home-banner', protect, adminOnly, upload.single('image'), cmsController.updateHomeBanner);
 router.put('/category-section', protect, adminOnly, cmsController.updateCategorySection);
-router.put('/best-seller', protect, adminOnly, cmsController.updateBestSeller);
+router.put('/best-seller', protect, adminOnly, upload.none(), cmsController.updateBestSeller);
 
 module.exports = router;

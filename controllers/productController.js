@@ -1,6 +1,71 @@
-const Product = require('../models/Product');
-const Category = require('../models/Category.model');
-const mongoose = require('mongoose');
+const Product = require("../models/Product");
+const Category = require("../models/Category.model");
+const mongoose = require("mongoose");
+
+const normalizeArrayField = (value) => {
+  if (value === undefined) return undefined;
+  if (Array.isArray(value)) return value;
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (error) {
+      return value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+  }
+
+  return value;
+};
+
+const normalizeBooleanField = (value) => {
+  if (typeof value !== "string") return value;
+  return value.toLowerCase() === "true";
+};
+
+const uploadProductImages = async (files = []) => {
+  if (!files.length) return [];
+
+  const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
+  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+  const urlEndpoint =
+    process.env.IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/dummy/";
+
+  if (
+    !publicKey ||
+    !privateKey ||
+    publicKey === "your_imagekit_public_key" ||
+    privateKey === "your_imagekit_private_key"
+  ) {
+    const error = new Error(
+      "ImageKit credentials are not configured. Please define valid IMAGEKIT_PUBLIC_KEY and IMAGEKIT_PRIVATE_KEY in your .env file.",
+    );
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const ImageKit = require("imagekit");
+  const ik = new ImageKit({
+    publicKey,
+    privateKey,
+    urlEndpoint,
+  });
+
+  const uploads = await Promise.all(
+    files.map((file) =>
+      ik.upload({
+        file: file.buffer,
+        fileName: `product_${Date.now()}_${file.originalname.replace(/\s+/g, "_")}`,
+        folder: "/crunchveda/products",
+      }),
+    ),
+  );
+
+  return uploads.map((uploadResponse) => uploadResponse.url);
+};
 
 // 1. GET ALL PRODUCTS
 exports.getAllProducts = async (req, res, next) => {
@@ -14,7 +79,7 @@ exports.getAllProducts = async (req, res, next) => {
         query.category = category;
       } else {
         const matchedCategory = await Category.findOne({
-          name: { $regex: new RegExp(`^${category}$`, 'i') },
+          name: { $regex: new RegExp(`^${category}$`, "i") },
         });
         if (matchedCategory) {
           query.category = matchedCategory._id;
@@ -26,13 +91,13 @@ exports.getAllProducts = async (req, res, next) => {
 
     // Search by name if search query provided
     if (search) {
-      query.name = { $regex: search, $options: 'i' }; // Case-insensitive matching
+      query.name = { $regex: search, $options: "i" }; // Case-insensitive matching
     }
 
-    const products = await Product.find(query).populate('category');
+    const products = await Product.find(query).populate("category");
 
     res.status(200).json({
-      status: 'success',
+      status: "success",
       results: products.length,
       data: {
         products,
@@ -46,17 +111,17 @@ exports.getAllProducts = async (req, res, next) => {
 // 2. GET SINGLE PRODUCT BY ID
 exports.getProductById = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate('category');
+    const product = await Product.findById(req.params.id).populate("category");
 
     if (!product) {
       return res.status(404).json({
-        status: 'fail',
-        message: 'No product found with that ID',
+        status: "fail",
+        message: "No product found with that ID",
       });
     }
 
     res.status(200).json({
-      status: 'success',
+      status: "success",
       data: {
         product,
       },
@@ -69,36 +134,44 @@ exports.getProductById = async (req, res, next) => {
 // 3. CREATE PRODUCT (Admin only)
 exports.createProduct = async (req, res, next) => {
   try {
-    const { name, description, price, category, stock, image } = req.body;
+    const uploadedImages = await uploadProductImages(req.files);
+    const requestImages = normalizeArrayField(req.body.images);
+    const images = uploadedImages.length ? uploadedImages : requestImages;
+    const prices = normalizeArrayField(req.body.prices);
+    const isBestseller = normalizeBooleanField(req.body.isBestseller);
+    const { name, description, category, stock } = req.body;
 
     if (!category) {
       return res.status(400).json({
-        status: 'fail',
-        message: 'Category is required',
+        status: "fail",
+        message: "Category is required",
       });
     }
 
     const categoryExists = await Category.findById(category);
     if (!categoryExists) {
       return res.status(400).json({
-        status: 'fail',
-        message: 'Selected category does not exist in the database.',
+        status: "fail",
+        message: "Selected category does not exist in the database.",
       });
     }
 
     const newProduct = await Product.create({
       name,
       description,
-      price,
+      isBestseller,
+      prices,
       category,
       stock,
-      image,
+      images,
     });
 
-    const populatedProduct = await Product.findById(newProduct._id).populate('category');
+    const populatedProduct = await Product.findById(newProduct._id).populate(
+      "category",
+    );
 
     res.status(201).json({
-      status: 'success',
+      status: "success",
       data: {
         product: populatedProduct,
       },
@@ -117,26 +190,48 @@ exports.updateProduct = async (req, res, next) => {
       const categoryExists = await Category.findById(category);
       if (!categoryExists) {
         return res.status(400).json({
-          status: 'fail',
-          message: 'Selected category does not exist in the database.',
+          status: "fail",
+          message: "Selected category does not exist in the database.",
         });
       }
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    }).populate('category');
+    const payload = { ...req.body };
+    const uploadedImages = await uploadProductImages(req.files);
+    const requestImages = normalizeArrayField(req.body.images);
+
+    if (uploadedImages.length) {
+      payload.images = uploadedImages;
+    } else if (requestImages !== undefined) {
+      payload.images = requestImages;
+    }
+
+    if (req.body.prices !== undefined) {
+      payload.prices = normalizeArrayField(req.body.prices);
+    }
+
+    if (req.body.isBestseller !== undefined) {
+      payload.isBestseller = normalizeBooleanField(req.body.isBestseller);
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      payload,
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).populate("category");
 
     if (!updatedProduct) {
       return res.status(404).json({
-        status: 'fail',
-        message: 'No product found with that ID',
+        status: "fail",
+        message: "No product found with that ID",
       });
     }
 
     res.status(200).json({
-      status: 'success',
+      status: "success",
       data: {
         product: updatedProduct,
       },
@@ -153,13 +248,13 @@ exports.deleteProduct = async (req, res, next) => {
 
     if (!product) {
       return res.status(404).json({
-        status: 'fail',
-        message: 'No product found with that ID',
+        status: "fail",
+        message: "No product found with that ID",
       });
     }
 
     res.status(204).json({
-      status: 'success',
+      status: "success",
       data: null,
     });
   } catch (error) {
@@ -171,10 +266,10 @@ exports.deleteProduct = async (req, res, next) => {
 exports.getProductCategories = async (req, res, next) => {
   try {
     const categories = await Category.find().sort({ name: 1 });
-    const categoryNames = categories.map(cat => cat.name);
+    const categoryNames = categories.map((cat) => cat.name);
 
     res.status(200).json({
-      status: 'success',
+      status: "success",
       data: {
         categories: categoryNames,
       },
