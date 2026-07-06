@@ -51,6 +51,58 @@ const ourStoryCMSSchema = new mongoose.Schema(
         default: '',
       },
     },
+    philosophy: {
+      sectionTitle: {
+        type: String,
+        default: '',
+      },
+      sectionDescription: {
+        type: String,
+        default: '',
+      },
+      philosophies: [
+        {
+          icon: {
+            type: String,
+            default: '',
+          },
+          title: {
+            type: String,
+            default: '',
+          },
+          description: {
+            type: String,
+            default: '',
+          },
+        },
+      ],
+    },
+    stewardship: {
+      sectionTitle: {
+        type: String,
+        default: '',
+      },
+      milestones: [
+        {
+          year: {
+            type: String,
+            default: '',
+          },
+          title: {
+            type: String,
+            default: '',
+          },
+          description: {
+            type: String,
+            default: '',
+          },
+          image: {
+            type: String,
+            default: '',
+          },
+        },
+      ],
+    },
   },
   {
     timestamps: true,
