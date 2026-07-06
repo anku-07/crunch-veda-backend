@@ -1,49 +1,49 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const homepageCMSSchema = new mongoose.Schema(
   {
     key: {
       type: String,
-      default: 'homepage',
+      default: "homepage",
       unique: true,
     },
     homeBanner: {
       bannerImage: {
         type: String,
-        default: '',
+        default: "",
       },
       bannerVideo: {
         type: String,
-        default: '',
+        default: "",
       },
       bannerSubTitle: {
         type: String,
-        default: '',
+        default: "",
       },
       bannerTitle: {
         type: String,
-        default: '',
+        default: "",
       },
       bannerDescription: {
         type: String,
-        default: '',
+        default: "",
       },
     },
     categorySection: {
       categoryTitle: {
         type: String,
-        default: '',
+        default: "",
       },
     },
     bestSellerSection: {
       sectionTitle: {
         type: String,
-        default: '',
+        default: "",
       },
       selectedProducts: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'Product',
+          ref: "Product",
         },
       ],
     },
@@ -52,15 +52,15 @@ const homepageCMSSchema = new mongoose.Schema(
         {
           icon: {
             type: String,
-            default: '',
+            default: "",
           },
           title: {
             type: String,
-            default: '',
+            default: "",
           },
           description: {
             type: String,
-            default: '',
+            default: "",
           },
         },
       ],
@@ -68,27 +68,27 @@ const homepageCMSSchema = new mongoose.Schema(
     giftBoxSection: {
       sectionLabel: {
         type: String,
-        default: '',
+        default: "",
       },
       sectionTitle: {
         type: String,
-        default: '',
+        default: "",
       },
       sectionDescription: {
         type: String,
-        default: '',
+        default: "",
       },
       buttonText: {
         type: String,
-        default: '',
+        default: "",
       },
       buttonLink: {
         type: String,
-        default: '',
+        default: "",
       },
       backgroundImage: {
         type: String,
-        default: '',
+        default: "",
       },
     },
     nutritionHighlightsSection: {
@@ -96,30 +96,30 @@ const homepageCMSSchema = new mongoose.Schema(
         {
           sectionLabel: {
             type: String,
-            default: '',
+            default: "",
           },
           sectionTitle: {
             type: String,
-            default: '',
+            default: "",
           },
           sectionDescription: {
             type: String,
-            default: '',
+            default: "",
           },
           highlights: [
             {
               type: String,
-              default: '',
+              default: "",
             },
           ],
           image: {
             type: String,
-            default: '',
+            default: "",
           },
           imagePosition: {
             type: String,
-            enum: ['left', 'right'],
-            default: 'right',
+            enum: ["left", "right"],
+            default: "right",
           },
         },
       ],
@@ -127,25 +127,48 @@ const homepageCMSSchema = new mongoose.Schema(
     heritageJourneySection: {
       sectionTitle: {
         type: String,
-        default: '',
+        default: "",
       },
       sectionDescription: {
         type: String,
-        default: '',
+        default: "",
       },
       milestones: [
         {
           year: {
             type: String,
-            default: '',
+            default: "",
           },
           title: {
             type: String,
-            default: '',
+            default: "",
           },
           description: {
             type: String,
-            default: '',
+            default: "",
+          },
+        },
+      ],
+    },
+
+    reelsSection: {
+      sectionTitle: {
+        type: String,
+        default: "",
+      },
+      sectionDescription: {
+        type: String,
+        default: "",
+      },
+      reels: [
+        {
+          reelsVideo: {
+            type: String,
+            default: "",
+          },
+          reelsImage: {
+            type: String,
+            default: "",
           },
         },
       ],
@@ -153,17 +176,17 @@ const homepageCMSSchema = new mongoose.Schema(
     faqSection: {
       sectionTitle: {
         type: String,
-        default: '',
+        default: "",
       },
       faqs: [
         {
           question: {
             type: String,
-            default: '',
+            default: "",
           },
           answer: {
             type: String,
-            default: '',
+            default: "",
           },
         },
       ],
@@ -171,7 +194,7 @@ const homepageCMSSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-module.exports = mongoose.model('HomepageCMS', homepageCMSSchema);
+module.exports = mongoose.model("HomepageCMS", homepageCMSSchema);

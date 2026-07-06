@@ -303,3 +303,85 @@ exports.getProductCategories = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.addToCart = async (req, res, next) => {
+  try {
+    const productId = req.params.id || req.body.productId;
+    const quantity = req.body.quantity !== undefined ? Number(req.body.quantity) : 1;
+    const user = req.user;
+
+    if (!productId) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Product ID is required",
+      });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        status: "fail",
+        message: "No product found with that ID",
+      });
+    }
+
+    const cartItem = user.cartItems.find((item) =>
+      item.product.equals(productId),
+    );
+    if (cartItem) {
+      cartItem.quantity += quantity;
+    } else {
+      user.cartItems.push({ product: productId, quantity });
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.removeFromCart = async (req, res, next) => {
+  try {
+    const productId = req.params.id || req.body.productId;
+    const user = req.user;
+
+    if (!productId) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Product ID is required",
+      });
+    }
+
+    const cartItem = user.cartItems.find((item) =>
+      item.product.equals(productId),
+    );
+    if (!cartItem) {
+      return res.status(404).json({
+        status: "fail",
+        message: "No product found in cart",
+      });
+    }
+
+    user.cartItems = user.cartItems.filter(
+      (item) => !item.product.equals(productId),
+    );
+
+    await user.save();
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

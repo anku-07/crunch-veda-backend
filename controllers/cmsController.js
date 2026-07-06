@@ -101,6 +101,17 @@ const faqSectionSchema = z.object({
   ).default([]),
 });
 
+const reelsSectionSchema = z.object({
+  sectionTitle: z.string().optional().default(""),
+  sectionDescription: z.string().optional().default(""),
+  reels: arrayField(
+    z.object({
+      reelsVideo: z.string().optional().default(""),
+      reelsImage: z.string().optional().default(""),
+    }),
+  ).default([]),
+});
+
 const updateHomepageSection = async (sectionName, schema, body) => {
   if (!body) {
     const error = new Error(
@@ -231,6 +242,11 @@ exports.getHomepageCMS = async (req, res, next) => {
           sectionTitle: "",
           faqs: [],
         },
+        reelsSection: {
+          sectionTitle: "",
+          sectionDescription: "",
+          reels: [],
+        },
       });
     }
 
@@ -281,6 +297,11 @@ exports.getHomepageCMS = async (req, res, next) => {
       faqSection: {
         sectionTitle: homepage.faqSection?.sectionTitle || "",
         faqs: homepage.faqSection?.faqs || [],
+      },
+      reelsSection: {
+        sectionTitle: homepage.reelsSection?.sectionTitle || "",
+        sectionDescription: homepage.reelsSection?.sectionDescription || "",
+        reels: homepage.reelsSection?.reels || [],
       },
     });
   } catch (error) {
@@ -572,6 +593,43 @@ exports.updateFaqSection = async (req, res, next) => {
       },
     });
   } catch (error) {
+    return handleZodError(error, res, next);
+  }
+};
+
+exports.updateReelsSection = async (req, res, next) => {
+  try {
+    console.log("📥 [updateReelsSection] req.body:", JSON.stringify(req.body, null, 2));
+
+    if (!req.body) {
+      return res.status(400).json({
+        status: "fail",
+        message:
+          "Request body is missing. Send JSON with Content-Type application/json, or form-data fields.",
+      });
+    }
+
+    console.log("⚙️ [updateReelsSection] Parsing with Zod schema...");
+    const parsedData = reelsSectionSchema.parse(req.body);
+    console.log("✅ [updateReelsSection] Zod parsing succeeded:", JSON.stringify(parsedData, null, 2));
+
+    console.log("💾 [updateReelsSection] Saving to database...");
+    const homepage = await HomepageCMS.findOneAndUpdate(
+      { key: "homepage" },
+      { $set: { reelsSection: parsedData } },
+      { new: true, upsert: true, runValidators: true },
+    );
+    console.log("🎉 [updateReelsSection] Saved successfully. reelsSection:", JSON.stringify(homepage?.reelsSection, null, 2));
+
+    res.status(200).json({
+      status: "success",
+      message: "Reels section updated successfully.",
+      data: {
+        reelsSection: homepage.reelsSection,
+      },
+    });
+  } catch (error) {
+    console.error("❌ [updateReelsSection] Error caught:", error);
     return handleZodError(error, res, next);
   }
 };
