@@ -33,6 +33,24 @@ const ourStoryCMSSchema = new mongoose.Schema(
         default: '',
       },
     },
+    theBeginning: {
+      sectionLabel: {
+        type: String,
+        default: '',
+      },
+      sectionTitle: {
+        type: String,
+        default: '',
+      },
+      sectionDescription: {
+        type: String,
+        default: '',
+      },
+      image: {
+        type: String,
+        default: '',
+      },
+    },
   },
   {
     timestamps: true,

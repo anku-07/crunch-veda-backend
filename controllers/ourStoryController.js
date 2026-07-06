@@ -11,6 +11,14 @@ const bannerSchema = z.object({
   buttonLink: z.string().optional().default(''),
 });
 
+// Validation Schema for The Beginning Section
+const theBeginningSchema = z.object({
+  sectionLabel: z.string().optional().default(''),
+  sectionTitle: z.string().min(1, 'sectionTitle is required'),
+  sectionDescription: z.string().optional().default(''),
+  image: z.string().optional(),
+});
+
 const handleZodError = (error, res, next) => {
   if (error instanceof z.ZodError) {
     return res.status(400).json({
@@ -61,6 +69,12 @@ exports.getOurStoryPage = async (req, res, next) => {
         bannerDescription: page.banner.bannerDescription || '',
         buttonText: page.banner.buttonText || '',
         buttonLink: page.banner.buttonLink || '',
+      },
+      theBeginning: {
+        sectionLabel: page.theBeginning?.sectionLabel || '',
+        sectionTitle: page.theBeginning?.sectionTitle || '',
+        sectionDescription: page.theBeginning?.sectionDescription || '',
+        image: page.theBeginning?.image || '',
       },
     });
   } catch (error) {
@@ -140,6 +154,83 @@ exports.updateBanner = async (req, res, next) => {
       message: 'Our Story banner updated successfully.',
       data: {
         banner: page.banner,
+      },
+    });
+  } catch (error) {
+    return handleZodError(error, res, next);
+  }
+};
+
+// 3. UPDATE THE BEGINNING SECTION (Admin Only)
+exports.updateTheBeginning = async (req, res, next) => {
+  try {
+    const parsedData = theBeginningSchema.parse(req.body);
+
+    let imageUrl = parsedData.image;
+
+    // If a file is uploaded, upload it to ImageKit
+    if (req.file) {
+      const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
+      const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+      const urlEndpoint =
+        process.env.IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/dummy/';
+
+      if (
+        !publicKey ||
+        !privateKey ||
+        publicKey === 'your_imagekit_public_key' ||
+        privateKey === 'your_imagekit_private_key'
+      ) {
+        return res.status(500).json({
+          status: 'error',
+          message:
+            'ImageKit credentials are not configured. Please define valid IMAGEKIT_PUBLIC_KEY and IMAGEKIT_PRIVATE_KEY in your .env file.',
+        });
+      }
+
+      const ImageKit = require('imagekit');
+      const ik = new ImageKit({
+        publicKey,
+        privateKey,
+        urlEndpoint,
+      });
+
+      const uploadResponse = await ik.upload({
+        file: req.file.buffer,
+        fileName: `our_story_beginning_${Date.now()}_${req.file.originalname.replace(/\s+/g, '_')}`,
+        folder: '/crunchveda/our-story',
+      });
+      imageUrl = uploadResponse.url;
+    }
+
+    // Fallback: retain existing image if no new file or URL provided
+    if (!imageUrl) {
+      const existing = await OurStoryCMS.findOne({ key: 'our-story' });
+      if (existing && existing.theBeginning && existing.theBeginning.image) {
+        imageUrl = existing.theBeginning.image;
+      }
+    }
+
+    const page = await OurStoryCMS.findOneAndUpdate(
+      { key: 'our-story' },
+      {
+        $set: {
+          theBeginning: {
+            sectionLabel: parsedData.sectionLabel,
+            sectionTitle: parsedData.sectionTitle,
+            sectionDescription: parsedData.sectionDescription,
+            image: imageUrl || '',
+          },
+        },
+      },
+      { new: true, upsert: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      status: 'success',
+      message: 'The Beginning section updated successfully.',
+      data: {
+        theBeginning: page.theBeginning,
       },
     });
   } catch (error) {
