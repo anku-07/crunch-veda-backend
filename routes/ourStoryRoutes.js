@@ -20,5 +20,7 @@ router.get('/', ourStoryController.getOurStoryPage);
 // --- PROTECTED ADMIN ROUTES ---
 router.put('/banner', protect, adminOnly, upload.single('image'), ourStoryController.updateBanner);
 router.put('/the-beginning', protect, adminOnly, upload.single('image'), ourStoryController.updateTheBeginning);
+router.put('/philosophy', protect, adminOnly, upload.none(), ourStoryController.updatePhilosophy);
+router.put('/stewardship', protect, adminOnly, upload.any(), ourStoryController.updateStewardship);
 
 module.exports = router;
