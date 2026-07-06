@@ -1,0 +1,17 @@
+{
+  "request": "curl --location --request PUT 'http://localhost:5000/api/cms/reels-section' \\\n--header 'Content-Type: application/json' \\\n--data '{\n  \"sectionTitle\": \"Trending Reels\",\n  \"sectionDescription\": \"Discover our products in action through these short videos\",\n  \"reels\": [\n    {\n      \"reelsVideo\": \"https://example.com/reels/video1.mp4\",\n      \"reelsImage\": \"https://example.com/reels/thumbnail1.jpg\"\n    },\n    {\n      \"reelsVideo\": \"https://example.com/reels/video2.mp4\",\n      \"reelsImage\": \"https://example.com/reels/thumbnail2.jpg\"\n    }\n  ]\n}\n'",
+  "response": {
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+      "x-powered-by": "Express",
+      "access-control-allow-origin": "*",
+      "content-type": "application/json; charset=utf-8",
+      "content-length": "504",
+      "etag": "W/\"1f8-KhykrAPY07q9ZmQ75dsOZIRNvPQ\"",
+      "date": "Mon, 06 Jul 2026 06:20:58 GMT",
+      "connection": "close"
+    },
+    "data": "{\"status\":\"success\",\"message\":\"Reels section updated successfully.\",\"data\":{\"reelsSection\":{\"sectionTitle\":\"Trending Reels\",\"sectionDescription\":\"Discover our products in action through these short videos\",\"reels\":[{\"reelsVideo\":\"https://example.com/reels/video1.mp4\",\"reelsImage\":\"https://example.com/reels/thumbnail1.jpg\",\"_id\":\"6a4b494aa0ae53ea8533f2a9\"},{\"reelsVideo\":\"https://example.com/reels/video2.mp4\",\"reelsImage\":\"https://example.com/reels/thumbnail2.jpg\",\"_id\":\"6a4b494aa0ae53ea8533f2aa\"}]}}}"
+  }
+}
