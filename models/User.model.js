@@ -47,6 +47,14 @@ const userSchema = new mongoose.Schema(
           required: true,
           default: 1,
         },
+        size: {
+          type: String,
+          default: "",
+        },
+        price: {
+          type: Number,
+          default: 0,
+        },
       },
     ],
   },

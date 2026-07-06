@@ -308,6 +308,8 @@ exports.addToCart = async (req, res, next) => {
   try {
     const productId = req.params.id || req.body.productId;
     const quantity = req.body.quantity !== undefined ? Number(req.body.quantity) : 1;
+    const size = req.body.size || "";
+    const price = req.body.price !== undefined ? Number(req.body.price) : 0;
     const user = req.user;
 
     if (!productId) {
@@ -326,15 +328,60 @@ exports.addToCart = async (req, res, next) => {
     }
 
     const cartItem = user.cartItems.find((item) =>
-      item.product.equals(productId),
+      item.product.equals(productId) && item.size === size
     );
     if (cartItem) {
       cartItem.quantity += quantity;
     } else {
-      user.cartItems.push({ product: productId, quantity });
+      user.cartItems.push({ product: productId, quantity, size, price });
     }
 
     await user.save();
+    await user.populate("cartItems.product");
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateCartItemQuantity = async (req, res, next) => {
+  try {
+    const productId = req.params.id || req.body.productId;
+    const quantity = req.body.quantity !== undefined ? Number(req.body.quantity) : 1;
+    const size = req.body.size || "";
+    const price = req.body.price !== undefined ? Number(req.body.price) : 0;
+    const user = req.user;
+
+    if (!productId) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Product ID is required",
+      });
+    }
+
+    if (quantity <= 0) {
+      user.cartItems = user.cartItems.filter(
+        (item) => !(item.product.equals(productId) && item.size === size)
+      );
+    } else {
+      const cartItem = user.cartItems.find((item) =>
+        item.product.equals(productId) && item.size === size
+      );
+      if (cartItem) {
+        cartItem.quantity = quantity;
+      } else {
+        user.cartItems.push({ product: productId, quantity, size, price });
+      }
+    }
+
+    await user.save();
+    await user.populate("cartItems.product");
 
     res.status(200).json({
       status: "success",
@@ -350,6 +397,7 @@ exports.addToCart = async (req, res, next) => {
 exports.removeFromCart = async (req, res, next) => {
   try {
     const productId = req.params.id || req.body.productId;
+    const size = req.query.size || req.body.size || "";
     const user = req.user;
 
     if (!productId) {
@@ -359,21 +407,20 @@ exports.removeFromCart = async (req, res, next) => {
       });
     }
 
-    const cartItem = user.cartItems.find((item) =>
-      item.product.equals(productId),
+    const initialLength = user.cartItems.length;
+    user.cartItems = user.cartItems.filter(
+      (item) => !(item.product.equals(productId) && item.size === size)
     );
-    if (!cartItem) {
+
+    if (user.cartItems.length === initialLength) {
       return res.status(404).json({
         status: "fail",
-        message: "No product found in cart",
+        message: "No matching product found in cart",
       });
     }
 
-    user.cartItems = user.cartItems.filter(
-      (item) => !item.product.equals(productId),
-    );
-
     await user.save();
+    await user.populate("cartItems.product");
 
     res.status(200).json({
       status: "success",

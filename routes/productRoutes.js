@@ -43,7 +43,8 @@ router.put(
   productController.updateProduct,
 );
 router.delete("/:id", protect, adminOnly, productController.deleteProduct);
-router.put("/cart/:id", protect, productController.addToCart);
+router.post("/cart/:id", protect, productController.addToCart);
+router.put("/cart/:id", protect, productController.updateCartItemQuantity);
 router.delete("/cart/:id", protect, productController.removeFromCart);
 
 module.exports = router;
