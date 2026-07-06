@@ -4,6 +4,29 @@ const Product = require("../models/Product");
 const Category = require("../models/Category.model");
 const { z } = require("zod");
 
+const parseJSONField = (value) => {
+  if (typeof value !== "string") return value;
+
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    return value;
+  }
+};
+
+const arrayField = (schema) =>
+  z.preprocess((value) => {
+    const parsed = parseJSONField(value);
+    if (Array.isArray(parsed)) return parsed;
+    if (typeof parsed === "string") {
+      return parsed
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+    return parsed;
+  }, z.array(schema));
+
 // Validation Schemas
 const homeBannerSchema = z.object({
   bannerImage: z.string().optional(),
@@ -19,29 +42,103 @@ const categorySectionSchema = z.object({
 
 const bestSellerSchema = z.object({
   sectionTitle: z.string().min(1, "sectionTitle is required"),
-  selectedProducts: z.preprocess(
-    (value) => {
-      if (Array.isArray(value)) return value;
-
-      if (typeof value === "string") {
-        try {
-          const parsed = JSON.parse(value);
-          if (Array.isArray(parsed)) return parsed;
-        } catch (error) {
-          return value
-            .split(",")
-            .map((productId) => productId.trim())
-            .filter(Boolean);
-        }
-      }
-
-      return value;
-    },
-    z.array(
-      z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Product ID format"),
-    ),
+  selectedProducts: arrayField(
+    z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid Product ID format"),
   ),
 });
+
+const featureSectionSchema = z.object({
+  features: arrayField(
+    z.object({
+      icon: z.string().optional().default(""),
+      title: z.string().optional().default(""),
+      description: z.string().optional().default(""),
+    }),
+  ).default([]),
+});
+
+const giftBoxSectionSchema = z.object({
+  sectionLabel: z.string().optional().default(""),
+  sectionTitle: z.string().optional().default(""),
+  sectionDescription: z.string().optional().default(""),
+  buttonText: z.string().optional().default(""),
+  buttonLink: z.string().optional().default(""),
+  backgroundImage: z.string().optional().default(""),
+});
+
+const nutritionHighlightsSectionSchema = z.object({
+  items: arrayField(
+    z.object({
+      sectionLabel: z.string().optional().default(""),
+      sectionTitle: z.string().optional().default(""),
+      sectionDescription: z.string().optional().default(""),
+      highlights: arrayField(z.string()).default([]),
+      image: z.string().optional().default(""),
+      imagePosition: z.enum(["left", "right"]).optional().default("right"),
+    }),
+  ).default([]),
+});
+
+const heritageJourneySectionSchema = z.object({
+  sectionTitle: z.string().optional().default(""),
+  sectionDescription: z.string().optional().default(""),
+  milestones: arrayField(
+    z.object({
+      year: z.string().optional().default(""),
+      title: z.string().optional().default(""),
+      description: z.string().optional().default(""),
+    }),
+  ).default([]),
+});
+
+const faqSectionSchema = z.object({
+  sectionTitle: z.string().optional().default(""),
+  faqs: arrayField(
+    z.object({
+      question: z.string().optional().default(""),
+      answer: z.string().optional().default(""),
+    }),
+  ).default([]),
+});
+
+const updateHomepageSection = async (sectionName, schema, body) => {
+  if (!body) {
+    const error = new Error(
+      "Request body is missing. Send JSON with Content-Type application/json, or form-data fields.",
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const parsedData = schema.parse(body);
+  return HomepageCMS.findOneAndUpdate(
+    { key: "homepage" },
+    { $set: { [sectionName]: parsedData } },
+    { new: true, upsert: true, runValidators: true },
+  );
+};
+
+const handleZodError = (error, res, next) => {
+  if (error instanceof z.ZodError) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Validation failed",
+      errors: error.issues.map((err) => ({
+        field: err.path.join("."),
+        message: err.message,
+      })),
+    });
+  }
+
+  if (error.statusCode) {
+    return res.status(error.statusCode).json({
+      status: "fail",
+      message: error.message,
+    });
+  }
+
+  return next(error);
+};
 
 // 1. GET CMS DATA (Public)
 exports.getCMSData = async (req, res, next) => {
@@ -111,6 +208,29 @@ exports.getHomepageCMS = async (req, res, next) => {
           sectionTitle: "",
           selectedProducts: [],
         },
+        featureSection: {
+          features: [],
+        },
+        giftBoxSection: {
+          sectionLabel: "",
+          sectionTitle: "",
+          sectionDescription: "",
+          buttonText: "",
+          buttonLink: "",
+          backgroundImage: "",
+        },
+        nutritionHighlightsSection: {
+          items: [],
+        },
+        heritageJourneySection: {
+          sectionTitle: "",
+          sectionDescription: "",
+          milestones: [],
+        },
+        faqSection: {
+          sectionTitle: "",
+          faqs: [],
+        },
       });
     }
 
@@ -137,6 +257,30 @@ exports.getHomepageCMS = async (req, res, next) => {
       bestSellerSection: {
         sectionTitle: homepage.bestSellerSection.sectionTitle || "",
         selectedProducts: bestSellerproducts || [],
+      },
+      featureSection: {
+        features: homepage.featureSection?.features || [],
+      },
+      giftBoxSection: {
+        sectionLabel: homepage.giftBoxSection?.sectionLabel || "",
+        sectionTitle: homepage.giftBoxSection?.sectionTitle || "",
+        sectionDescription: homepage.giftBoxSection?.sectionDescription || "",
+        buttonText: homepage.giftBoxSection?.buttonText || "",
+        buttonLink: homepage.giftBoxSection?.buttonLink || "",
+        backgroundImage: homepage.giftBoxSection?.backgroundImage || "",
+      },
+      nutritionHighlightsSection: {
+        items: homepage.nutritionHighlightsSection?.items || [],
+      },
+      heritageJourneySection: {
+        sectionTitle: homepage.heritageJourneySection?.sectionTitle || "",
+        sectionDescription:
+          homepage.heritageJourneySection?.sectionDescription || "",
+        milestones: homepage.heritageJourneySection?.milestones || [],
+      },
+      faqSection: {
+        sectionTitle: homepage.faqSection?.sectionTitle || "",
+        faqs: homepage.faqSection?.faqs || [],
       },
     });
   } catch (error) {
@@ -324,5 +468,110 @@ exports.updateBestSeller = async (req, res, next) => {
       });
     }
     next(error);
+  }
+};
+
+// 7. UPDATE FEATURE SECTION (Admin Only)
+exports.updateFeatureSection = async (req, res, next) => {
+  try {
+    const homepage = await updateHomepageSection(
+      "featureSection",
+      featureSectionSchema,
+      req.body,
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "Feature section updated successfully.",
+      data: {
+        featureSection: homepage.featureSection,
+      },
+    });
+  } catch (error) {
+    return handleZodError(error, res, next);
+  }
+};
+
+// 8. UPDATE GIFT BOX SECTION (Admin Only)
+exports.updateGiftBoxSection = async (req, res, next) => {
+  try {
+    const homepage = await updateHomepageSection(
+      "giftBoxSection",
+      giftBoxSectionSchema,
+      req.body,
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "Gift box section updated successfully.",
+      data: {
+        giftBoxSection: homepage.giftBoxSection,
+      },
+    });
+  } catch (error) {
+    return handleZodError(error, res, next);
+  }
+};
+
+// 9. UPDATE NUTRITION HIGHLIGHTS SECTION (Admin Only)
+exports.updateNutritionHighlightsSection = async (req, res, next) => {
+  try {
+    const homepage = await updateHomepageSection(
+      "nutritionHighlightsSection",
+      nutritionHighlightsSectionSchema,
+      req.body,
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "Nutrition highlights section updated successfully.",
+      data: {
+        nutritionHighlightsSection: homepage.nutritionHighlightsSection,
+      },
+    });
+  } catch (error) {
+    return handleZodError(error, res, next);
+  }
+};
+
+// 10. UPDATE HERITAGE JOURNEY SECTION (Admin Only)
+exports.updateHeritageJourneySection = async (req, res, next) => {
+  try {
+    const homepage = await updateHomepageSection(
+      "heritageJourneySection",
+      heritageJourneySectionSchema,
+      req.body,
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "Heritage journey section updated successfully.",
+      data: {
+        heritageJourneySection: homepage.heritageJourneySection,
+      },
+    });
+  } catch (error) {
+    return handleZodError(error, res, next);
+  }
+};
+
+// 11. UPDATE FAQ SECTION (Admin Only)
+exports.updateFaqSection = async (req, res, next) => {
+  try {
+    const homepage = await updateHomepageSection(
+      "faqSection",
+      faqSectionSchema,
+      req.body,
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "FAQ section updated successfully.",
+      data: {
+        faqSection: homepage.faqSection,
+      },
+    });
+  } catch (error) {
+    return handleZodError(error, res, next);
   }
 };

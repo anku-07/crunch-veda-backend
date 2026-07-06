@@ -16,6 +16,20 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    badge: {
+      type: String,
+      default: "",
+    },
+    rating: {
+      type: {
+        number: Number,
+        total: Number,
+      },
+      default: {
+        number: 0,
+        total: 0,
+      },
+    },
     prices: {
       type: [
         {

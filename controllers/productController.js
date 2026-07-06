@@ -26,6 +26,22 @@ const normalizeBooleanField = (value) => {
   return value.toLowerCase() === "true";
 };
 
+const normalizeObjectField = (value) => {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") return value;
+
+  try {
+    const parsed = JSON.parse(value);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch (error) {
+    return value;
+  }
+
+  return value;
+};
+
 const uploadProductImages = async (files = []) => {
   if (!files.length) return [];
 
@@ -134,12 +150,14 @@ exports.getProductById = async (req, res, next) => {
 // 3. CREATE PRODUCT (Admin only)
 exports.createProduct = async (req, res, next) => {
   try {
+    const body = req.body || {};
     const uploadedImages = await uploadProductImages(req.files);
-    const requestImages = normalizeArrayField(req.body.images);
+    const requestImages = normalizeArrayField(body.images);
     const images = uploadedImages.length ? uploadedImages : requestImages;
-    const prices = normalizeArrayField(req.body.prices);
-    const isBestseller = normalizeBooleanField(req.body.isBestseller);
-    const { name, description, category, stock } = req.body;
+    const prices = normalizeArrayField(body.prices);
+    const isBestseller = normalizeBooleanField(body.isBestseller);
+    const rating = normalizeObjectField(body.rating);
+    const { name, description, category, stock, badge } = body;
 
     if (!category) {
       return res.status(400).json({
@@ -164,6 +182,8 @@ exports.createProduct = async (req, res, next) => {
       category,
       stock,
       images,
+      rating,
+      badge,
     });
 
     const populatedProduct = await Product.findById(newProduct._id).populate(
@@ -184,7 +204,8 @@ exports.createProduct = async (req, res, next) => {
 // 4. UPDATE PRODUCT (Admin only)
 exports.updateProduct = async (req, res, next) => {
   try {
-    const { category } = req.body;
+    const body = req.body || {};
+    const { category } = body;
 
     if (category) {
       const categoryExists = await Category.findById(category);
@@ -196,9 +217,9 @@ exports.updateProduct = async (req, res, next) => {
       }
     }
 
-    const payload = { ...req.body };
+    const payload = { ...body };
     const uploadedImages = await uploadProductImages(req.files);
-    const requestImages = normalizeArrayField(req.body.images);
+    const requestImages = normalizeArrayField(body.images);
 
     if (uploadedImages.length) {
       payload.images = uploadedImages;
@@ -206,12 +227,16 @@ exports.updateProduct = async (req, res, next) => {
       payload.images = requestImages;
     }
 
-    if (req.body.prices !== undefined) {
-      payload.prices = normalizeArrayField(req.body.prices);
+    if (body.prices !== undefined) {
+      payload.prices = normalizeArrayField(body.prices);
     }
 
-    if (req.body.isBestseller !== undefined) {
-      payload.isBestseller = normalizeBooleanField(req.body.isBestseller);
+    if (body.isBestseller !== undefined) {
+      payload.isBestseller = normalizeBooleanField(body.isBestseller);
+    }
+
+    if (body.rating !== undefined) {
+      payload.rating = normalizeObjectField(body.rating);
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(

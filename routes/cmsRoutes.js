@@ -23,5 +23,10 @@ router.put('/', protect, adminOnly, cmsController.updateCMSData);
 router.put('/home-banner', protect, adminOnly, upload.single('image'), cmsController.updateHomeBanner);
 router.put('/category-section', protect, adminOnly, cmsController.updateCategorySection);
 router.put('/best-seller', protect, adminOnly, upload.none(), cmsController.updateBestSeller);
+router.put('/feature-section', protect, adminOnly, upload.none(), cmsController.updateFeatureSection);
+router.put('/gift-box-section', protect, adminOnly, upload.none(), cmsController.updateGiftBoxSection);
+router.put('/nutrition-highlights-section', protect, adminOnly, upload.none(), cmsController.updateNutritionHighlightsSection);
+router.put('/heritage-journey-section', protect, adminOnly, upload.none(), cmsController.updateHeritageJourneySection);
+router.put('/faq-section', protect, adminOnly, upload.none(), cmsController.updateFaqSection);
 
 module.exports = router;
