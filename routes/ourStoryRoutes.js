@@ -16,6 +16,10 @@ const upload = multer({
 
 // --- PUBLIC ROUTES ---
 router.get('/', ourStoryController.getOurStoryPage);
+router.get('/banner', ourStoryController.getBanner);
+router.get('/the-beginning', ourStoryController.getTheBeginning);
+router.get('/philosophy', ourStoryController.getPhilosophy);
+router.get('/stewardship', ourStoryController.getStewardship);
 
 // --- PROTECTED ADMIN ROUTES ---
 router.put('/banner', protect, adminOnly, upload.single('image'), ourStoryController.updateBanner);
