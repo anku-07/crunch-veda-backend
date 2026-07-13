@@ -9,6 +9,7 @@ const cmsRoutes = require('./routes/cmsRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const ourStoryRoutes = require('./routes/ourStoryRoutes');
+const giftsRoutes = require('./routes/giftsRoutes');
 const errorHandler = require('./middlewares/errorMiddleware');
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/cms', cmsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/our-story', ourStoryRoutes);
+app.use('/api/gifts', giftsRoutes);
 
 // --- 3. 404 FALLBACK ROUTE ---
 app.use((req, res, next) => {
