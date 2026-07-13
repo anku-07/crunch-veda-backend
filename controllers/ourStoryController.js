@@ -364,3 +364,74 @@ exports.updateStewardship = async (req, res, next) => {
   }
 };
 
+exports.getBanner = async (req, res, next) => {
+  try {
+    const page = await OurStoryCMS.findOne({ key: 'our-story' });
+    const banner = page?.banner || {
+      bannerImage: '',
+      bannerLabel: '',
+      bannerTitle: '',
+      bannerDescription: '',
+      buttonText: '',
+      buttonLink: '',
+    };
+    res.status(200).json({
+      status: 'success',
+      data: { banner },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getTheBeginning = async (req, res, next) => {
+  try {
+    const page = await OurStoryCMS.findOne({ key: 'our-story' });
+    const theBeginning = page?.theBeginning || {
+      sectionLabel: '',
+      sectionTitle: '',
+      sectionDescription: '',
+      image: '',
+    };
+    res.status(200).json({
+      status: 'success',
+      data: { theBeginning },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getPhilosophy = async (req, res, next) => {
+  try {
+    const page = await OurStoryCMS.findOne({ key: 'our-story' });
+    const philosophy = page?.philosophy || {
+      sectionTitle: '',
+      sectionDescription: '',
+      philosophies: [],
+    };
+    res.status(200).json({
+      status: 'success',
+      data: { philosophy },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getStewardship = async (req, res, next) => {
+  try {
+    const page = await OurStoryCMS.findOne({ key: 'our-story' });
+    const stewardship = page?.stewardship || {
+      sectionTitle: '',
+      milestones: [],
+    };
+    res.status(200).json({
+      status: 'success',
+      data: { stewardship },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

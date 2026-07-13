@@ -22,7 +22,9 @@ const protect = async (req, res, next) => {
     const decoded = verifyToken(token);
 
     // Find user by id stored in token
-    const currentUser = await User.findById(decoded.id).select('-password');
+    const currentUser = await User.findById(decoded.id)
+      .select('-password')
+      .populate('cartItems.product');
     if (!currentUser) {
       return res.status(401).json({
         status: 'fail',
