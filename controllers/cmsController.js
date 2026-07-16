@@ -599,7 +599,10 @@ exports.updateFaqSection = async (req, res, next) => {
 
 exports.updateReelsSection = async (req, res, next) => {
   try {
-    console.log("📥 [updateReelsSection] req.body:", JSON.stringify(req.body, null, 2));
+    console.log(
+      "📥 [updateReelsSection] req.body:",
+      JSON.stringify(req.body, null, 2),
+    );
 
     if (!req.body) {
       return res.status(400).json({
@@ -611,7 +614,10 @@ exports.updateReelsSection = async (req, res, next) => {
 
     console.log("⚙️ [updateReelsSection] Parsing with Zod schema...");
     const parsedData = reelsSectionSchema.parse(req.body);
-    console.log("✅ [updateReelsSection] Zod parsing succeeded:", JSON.stringify(parsedData, null, 2));
+    console.log(
+      "✅ [updateReelsSection] Zod parsing succeeded:",
+      JSON.stringify(parsedData, null, 2),
+    );
 
     console.log("💾 [updateReelsSection] Saving to database...");
     const homepage = await HomepageCMS.findOneAndUpdate(
@@ -619,7 +625,10 @@ exports.updateReelsSection = async (req, res, next) => {
       { $set: { reelsSection: parsedData } },
       { new: true, upsert: true, runValidators: true },
     );
-    console.log("🎉 [updateReelsSection] Saved successfully. reelsSection:", JSON.stringify(homepage?.reelsSection, null, 2));
+    console.log(
+      "🎉 [updateReelsSection] Saved successfully. reelsSection:",
+      JSON.stringify(homepage?.reelsSection, null, 2),
+    );
 
     res.status(200).json({
       status: "success",

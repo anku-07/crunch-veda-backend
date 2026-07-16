@@ -157,7 +157,9 @@ const adminLogin = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password').populate('cartItems.product');
+    const user = await User.findById(req.user._id)
+      .select("-password")
+      .populate("cartItems.product");
     res.status(200).json({
       success: true,
       data: {

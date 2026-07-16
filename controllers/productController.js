@@ -307,7 +307,8 @@ exports.getProductCategories = async (req, res, next) => {
 exports.addToCart = async (req, res, next) => {
   try {
     const productId = req.params.id || req.body.productId;
-    const quantity = req.body.quantity !== undefined ? Number(req.body.quantity) : 1;
+    const quantity =
+      req.body.quantity !== undefined ? Number(req.body.quantity) : 1;
     const size = req.body.size || "";
     const price = req.body.price !== undefined ? Number(req.body.price) : 0;
     const user = req.user;
@@ -327,8 +328,8 @@ exports.addToCart = async (req, res, next) => {
       });
     }
 
-    const cartItem = user.cartItems.find((item) =>
-      item.product.equals(productId) && item.size === size
+    const cartItem = user.cartItems.find(
+      (item) => item.product.equals(productId) && item.size === size,
     );
     if (cartItem) {
       cartItem.quantity += quantity;
@@ -353,7 +354,8 @@ exports.addToCart = async (req, res, next) => {
 exports.updateCartItemQuantity = async (req, res, next) => {
   try {
     const productId = req.params.id || req.body.productId;
-    const quantity = req.body.quantity !== undefined ? Number(req.body.quantity) : 1;
+    const quantity =
+      req.body.quantity !== undefined ? Number(req.body.quantity) : 1;
     const size = req.body.size || "";
     const price = req.body.price !== undefined ? Number(req.body.price) : 0;
     const user = req.user;
@@ -367,11 +369,11 @@ exports.updateCartItemQuantity = async (req, res, next) => {
 
     if (quantity <= 0) {
       user.cartItems = user.cartItems.filter(
-        (item) => !(item.product.equals(productId) && item.size === size)
+        (item) => !(item.product.equals(productId) && item.size === size),
       );
     } else {
-      const cartItem = user.cartItems.find((item) =>
-        item.product.equals(productId) && item.size === size
+      const cartItem = user.cartItems.find(
+        (item) => item.product.equals(productId) && item.size === size,
       );
       if (cartItem) {
         cartItem.quantity = quantity;
@@ -409,7 +411,7 @@ exports.removeFromCart = async (req, res, next) => {
 
     const initialLength = user.cartItems.length;
     user.cartItems = user.cartItems.filter(
-      (item) => !(item.product.equals(productId) && item.size === size)
+      (item) => !(item.product.equals(productId) && item.size === size),
     );
 
     if (user.cartItems.length === initialLength) {

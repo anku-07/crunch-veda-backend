@@ -1,67 +1,86 @@
-const AboutUsCMS = require('../models/AboutUsCMS.model');
-const { z } = require('zod');
+const AboutUsCMS = require("../models/AboutUsCMS.model");
+const { z } = require("zod");
 
 // Validation Schemas
 const bannerSchema = z.object({
-  bannerImage: z.string().optional().default(''),
-  bannerLabel: z.string().optional().default(''),
-  bannerTitle: z.string().min(1, 'bannerTitle is required'),
-  bannerDescription: z.string().optional().default(''),
-  showSection: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional().default(true),
+  bannerImage: z.string().optional().default(""),
+  bannerLabel: z.string().optional().default(""),
+  bannerTitle: z.string().min(1, "bannerTitle is required"),
+  bannerDescription: z.string().optional().default(""),
+  showSection: z
+    .preprocess((v) => v === "true" || v === true, z.boolean())
+    .optional()
+    .default(true),
 });
 
 const stewardshipSchema = z.object({
-  eyebrow: z.string().optional().default(''),
-  heading: z.string().min(1, 'heading is required'),
-  description: z.string().optional().default(''),
-  quote: z.string().optional().default(''),
-  badgeNumber: z.string().optional().default(''),
-  badgeText: z.string().optional().default(''),
-  image: z.string().optional().default(''),
-  showSection: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional().default(true),
+  eyebrow: z.string().optional().default(""),
+  heading: z.string().min(1, "heading is required"),
+  description: z.string().optional().default(""),
+  quote: z.string().optional().default(""),
+  badgeNumber: z.string().optional().default(""),
+  badgeText: z.string().optional().default(""),
+  image: z.string().optional().default(""),
+  showSection: z
+    .preprocess((v) => v === "true" || v === true, z.boolean())
+    .optional()
+    .default(true),
 });
 
 const journeySchema = z.object({
-  eyebrow: z.string().optional().default(''),
-  heading: z.string().min(1, 'heading is required'),
-  steps: z.string().optional().default(''),
-  imageSet: z.string().optional().default(''),
-  showSection: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional().default(true),
+  eyebrow: z.string().optional().default(""),
+  heading: z.string().min(1, "heading is required"),
+  steps: z.string().optional().default(""),
+  imageSet: z.string().optional().default(""),
+  showSection: z
+    .preprocess((v) => v === "true" || v === true, z.boolean())
+    .optional()
+    .default(true),
 });
 
 const quoteSchema = z.object({
-  quote: z.string().min(1, 'quote is required'),
-  author: z.string().optional().default(''),
-  showSection: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional().default(true),
+  quote: z.string().min(1, "quote is required"),
+  author: z.string().optional().default(""),
+  showSection: z
+    .preprocess((v) => v === "true" || v === true, z.boolean())
+    .optional()
+    .default(true),
 });
 
 const charterSchema = z.object({
-  heading: z.string().min(1, 'heading is required'),
-  description: z.string().optional().default(''),
-  reportLabel: z.string().optional().default(''),
-  reportHref: z.string().optional().default(''),
-  charters: z.string().optional().default(''),
-  showSection: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional().default(true),
+  heading: z.string().min(1, "heading is required"),
+  description: z.string().optional().default(""),
+  reportLabel: z.string().optional().default(""),
+  reportHref: z.string().optional().default(""),
+  charters: z.string().optional().default(""),
+  showSection: z
+    .preprocess((v) => v === "true" || v === true, z.boolean())
+    .optional()
+    .default(true),
 });
 
-const uploadImageToImageKit = async (file, folder = '/crunchveda/about-us') => {
+const uploadImageToImageKit = async (file, folder = "/crunchveda/about-us") => {
   if (!file) return null;
 
   const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
   const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-  const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/dummy/';
+  const urlEndpoint =
+    process.env.IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/dummy/";
 
   if (
-    !publicKey || !privateKey ||
-    publicKey === 'your_imagekit_public_key' ||
-    privateKey === 'your_imagekit_private_key'
+    !publicKey ||
+    !privateKey ||
+    publicKey === "your_imagekit_public_key" ||
+    privateKey === "your_imagekit_private_key"
   ) {
-    const error = new Error('ImageKit credentials are not configured. Please define valid IMAGEKIT_PUBLIC_KEY and IMAGEKIT_PRIVATE_KEY in your .env file.');
+    const error = new Error(
+      "ImageKit credentials are not configured. Please define valid IMAGEKIT_PUBLIC_KEY and IMAGEKIT_PRIVATE_KEY in your .env file.",
+    );
     error.statusCode = 500;
     throw error;
   }
 
-  const ImageKit = require('imagekit');
+  const ImageKit = require("imagekit");
   const ik = new ImageKit({
     publicKey,
     privateKey,
@@ -70,7 +89,7 @@ const uploadImageToImageKit = async (file, folder = '/crunchveda/about-us') => {
 
   const uploadResponse = await ik.upload({
     file: file.buffer,
-    fileName: `about_us_${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`,
+    fileName: `about_us_${Date.now()}_${file.originalname.replace(/\s+/g, "_")}`,
     folder: folder,
   });
 
@@ -80,10 +99,10 @@ const uploadImageToImageKit = async (file, folder = '/crunchveda/about-us') => {
 const handleZodError = (error, res, next) => {
   if (error instanceof z.ZodError) {
     return res.status(400).json({
-      status: 'fail',
-      message: 'Validation failed',
+      status: "fail",
+      message: "Validation failed",
       errors: error.issues.map((err) => ({
-        field: err.path.join('.'),
+        field: err.path.join("."),
         message: err.message,
       })),
     });
@@ -91,7 +110,7 @@ const handleZodError = (error, res, next) => {
 
   if (error.statusCode) {
     return res.status(error.statusCode).json({
-      status: 'fail',
+      status: "fail",
       message: error.message,
     });
   }
@@ -102,16 +121,17 @@ const handleZodError = (error, res, next) => {
 // 1. GET ALL PAGE DATA
 exports.getAboutUsPage = async (req, res, next) => {
   try {
-    let page = await AboutUsCMS.findOne({ key: 'about-us' });
+    let page = await AboutUsCMS.findOne({ key: "about-us" });
     if (!page) {
       page = await AboutUsCMS.create({
-        key: 'about-us',
+        key: "about-us",
         banner: {
-          bannerImage: '',
-          bannerLabel: '',
-          bannerTitle: 'Cultivating Legacy Through the Seasons',
-          bannerDescription: 'A century of dedication to the soil, the seed, and the harvest.',
-          showSection: true
+          bannerImage: "",
+          bannerLabel: "",
+          bannerTitle: "Cultivating Legacy Through the Seasons",
+          bannerDescription:
+            "A century of dedication to the soil, the seed, and the harvest.",
+          showSection: true,
         },
       });
     }
@@ -128,12 +148,37 @@ exports.getAboutUsPage = async (req, res, next) => {
             type: "Hero section",
             status: "Published",
             fields: [
-              { id: "eyebrow", label: "Hero subtitle", type: "text", value: page.banner.bannerLabel || "" },
-              { id: "headline", label: "H1 headline", type: "text", value: page.banner.bannerTitle || "" },
-              { id: "description", label: "Hero paragraph", type: "textarea", value: page.banner.bannerDescription || "" },
-              { id: "image", label: "Hero image", type: "image", value: page.banner.bannerImage || "" },
-              { id: "showSection", label: "Show section", type: "toggle", value: page.banner.showSection !== false }
-            ]
+              {
+                id: "eyebrow",
+                label: "Hero subtitle",
+                type: "text",
+                value: page.banner.bannerLabel || "",
+              },
+              {
+                id: "headline",
+                label: "H1 headline",
+                type: "text",
+                value: page.banner.bannerTitle || "",
+              },
+              {
+                id: "description",
+                label: "Hero paragraph",
+                type: "textarea",
+                value: page.banner.bannerDescription || "",
+              },
+              {
+                id: "image",
+                label: "Hero image",
+                type: "image",
+                value: page.banner.bannerImage || "",
+              },
+              {
+                id: "showSection",
+                label: "Show section",
+                type: "toggle",
+                value: page.banner.showSection !== false,
+              },
+            ],
           },
           {
             id: "about-stewardship",
@@ -141,15 +186,55 @@ exports.getAboutUsPage = async (req, res, next) => {
             type: "Roots content",
             status: "Published",
             fields: [
-              { id: "eyebrow", label: "Eyebrow", type: "text", value: page.stewardship.eyebrow || "" },
-              { id: "heading", label: "Heading", type: "text", value: page.stewardship.heading || "" },
-              { id: "description", label: "Description", type: "textarea", value: page.stewardship.description || "" },
-              { id: "quote", label: "Quote", type: "textarea", value: page.stewardship.quote || "" },
-              { id: "badgeNumber", label: "Badge Number", type: "text", value: page.stewardship.badgeNumber || "" },
-              { id: "badgeText", label: "Badge Text", type: "text", value: page.stewardship.badgeText || "" },
-              { id: "image", label: "Image", type: "image", value: page.stewardship.image || "" },
-              { id: "showSection", label: "Show section", type: "toggle", value: page.stewardship.showSection !== false }
-            ]
+              {
+                id: "eyebrow",
+                label: "Eyebrow",
+                type: "text",
+                value: page.stewardship.eyebrow || "",
+              },
+              {
+                id: "heading",
+                label: "Heading",
+                type: "text",
+                value: page.stewardship.heading || "",
+              },
+              {
+                id: "description",
+                label: "Description",
+                type: "textarea",
+                value: page.stewardship.description || "",
+              },
+              {
+                id: "quote",
+                label: "Quote",
+                type: "textarea",
+                value: page.stewardship.quote || "",
+              },
+              {
+                id: "badgeNumber",
+                label: "Badge Number",
+                type: "text",
+                value: page.stewardship.badgeNumber || "",
+              },
+              {
+                id: "badgeText",
+                label: "Badge Text",
+                type: "text",
+                value: page.stewardship.badgeText || "",
+              },
+              {
+                id: "image",
+                label: "Image",
+                type: "image",
+                value: page.stewardship.image || "",
+              },
+              {
+                id: "showSection",
+                label: "Show section",
+                type: "toggle",
+                value: page.stewardship.showSection !== false,
+              },
+            ],
           },
           {
             id: "about-journey",
@@ -157,12 +242,37 @@ exports.getAboutUsPage = async (req, res, next) => {
             type: "Artisanal content",
             status: "Published",
             fields: [
-              { id: "eyebrow", label: "Eyebrow", type: "text", value: page.journey.eyebrow || "" },
-              { id: "heading", label: "Heading", type: "text", value: page.journey.heading || "" },
-              { id: "steps", label: "Steps (Title|Desc)", type: "textarea", value: page.journey.steps || "" },
-              { id: "imageSet", label: "Images (Newline separated)", type: "textarea", value: page.journey.imageSet || "" },
-              { id: "showSection", label: "Show section", type: "toggle", value: page.journey.showSection !== false }
-            ]
+              {
+                id: "eyebrow",
+                label: "Eyebrow",
+                type: "text",
+                value: page.journey.eyebrow || "",
+              },
+              {
+                id: "heading",
+                label: "Heading",
+                type: "text",
+                value: page.journey.heading || "",
+              },
+              {
+                id: "steps",
+                label: "Steps (Title|Desc)",
+                type: "textarea",
+                value: page.journey.steps || "",
+              },
+              {
+                id: "imageSet",
+                label: "Images (Newline separated)",
+                type: "textarea",
+                value: page.journey.imageSet || "",
+              },
+              {
+                id: "showSection",
+                label: "Show section",
+                type: "toggle",
+                value: page.journey.showSection !== false,
+              },
+            ],
           },
           {
             id: "about-quote",
@@ -170,10 +280,25 @@ exports.getAboutUsPage = async (req, res, next) => {
             type: "Quote content",
             status: "Published",
             fields: [
-              { id: "quote", label: "Quote", type: "textarea", value: page.quote.quote || "" },
-              { id: "author", label: "Author", type: "text", value: page.quote.author || "" },
-              { id: "showSection", label: "Show section", type: "toggle", value: page.quote.showSection !== false }
-            ]
+              {
+                id: "quote",
+                label: "Quote",
+                type: "textarea",
+                value: page.quote.quote || "",
+              },
+              {
+                id: "author",
+                label: "Author",
+                type: "text",
+                value: page.quote.author || "",
+              },
+              {
+                id: "showSection",
+                label: "Show section",
+                type: "toggle",
+                value: page.quote.showSection !== false,
+              },
+            ],
           },
           {
             id: "about-charter",
@@ -181,16 +306,46 @@ exports.getAboutUsPage = async (req, res, next) => {
             type: "Charter content",
             status: "Published",
             fields: [
-              { id: "heading", label: "Heading", type: "text", value: page.charter.heading || "" },
-              { id: "description", label: "Description", type: "textarea", value: page.charter.description || "" },
-              { id: "reportLabel", label: "Report CTA Label", type: "text", value: page.charter.reportLabel || "" },
-              { id: "reportHref", label: "Report Link", type: "text", value: page.charter.reportHref || "" },
-              { id: "charters", label: "Charters (Title|Desc)", type: "textarea", value: page.charter.charters || "" },
-              { id: "showSection", label: "Show section", type: "toggle", value: page.charter.showSection !== false }
-            ]
-          }
-        ]
-      }
+              {
+                id: "heading",
+                label: "Heading",
+                type: "text",
+                value: page.charter.heading || "",
+              },
+              {
+                id: "description",
+                label: "Description",
+                type: "textarea",
+                value: page.charter.description || "",
+              },
+              {
+                id: "reportLabel",
+                label: "Report CTA Label",
+                type: "text",
+                value: page.charter.reportLabel || "",
+              },
+              {
+                id: "reportHref",
+                label: "Report Link",
+                type: "text",
+                value: page.charter.reportHref || "",
+              },
+              {
+                id: "charters",
+                label: "Charters (Title|Desc)",
+                type: "textarea",
+                value: page.charter.charters || "",
+              },
+              {
+                id: "showSection",
+                label: "Show section",
+                type: "toggle",
+                value: page.charter.showSection !== false,
+              },
+            ],
+          },
+        ],
+      },
     });
   } catch (error) {
     next(error);
@@ -200,10 +355,10 @@ exports.getAboutUsPage = async (req, res, next) => {
 // 2. GET SECTION: Banner
 exports.getBanner = async (req, res, next) => {
   try {
-    const page = await AboutUsCMS.findOne({ key: 'about-us' });
+    const page = await AboutUsCMS.findOne({ key: "about-us" });
     res.status(200).json({
-      status: 'success',
-      data: { banner: page?.banner || {} }
+      status: "success",
+      data: { banner: page?.banner || {} },
     });
   } catch (error) {
     next(error);
@@ -213,10 +368,10 @@ exports.getBanner = async (req, res, next) => {
 // 3. GET SECTION: Stewardship
 exports.getStewardship = async (req, res, next) => {
   try {
-    const page = await AboutUsCMS.findOne({ key: 'about-us' });
+    const page = await AboutUsCMS.findOne({ key: "about-us" });
     res.status(200).json({
-      status: 'success',
-      data: { stewardship: page?.stewardship || {} }
+      status: "success",
+      data: { stewardship: page?.stewardship || {} },
     });
   } catch (error) {
     next(error);
@@ -226,10 +381,10 @@ exports.getStewardship = async (req, res, next) => {
 // 4. GET SECTION: Journey
 exports.getJourney = async (req, res, next) => {
   try {
-    const page = await AboutUsCMS.findOne({ key: 'about-us' });
+    const page = await AboutUsCMS.findOne({ key: "about-us" });
     res.status(200).json({
-      status: 'success',
-      data: { journey: page?.journey || {} }
+      status: "success",
+      data: { journey: page?.journey || {} },
     });
   } catch (error) {
     next(error);
@@ -239,10 +394,10 @@ exports.getJourney = async (req, res, next) => {
 // 5. GET SECTION: Quote
 exports.getQuote = async (req, res, next) => {
   try {
-    const page = await AboutUsCMS.findOne({ key: 'about-us' });
+    const page = await AboutUsCMS.findOne({ key: "about-us" });
     res.status(200).json({
-      status: 'success',
-      data: { quote: page?.quote || {} }
+      status: "success",
+      data: { quote: page?.quote || {} },
     });
   } catch (error) {
     next(error);
@@ -252,10 +407,10 @@ exports.getQuote = async (req, res, next) => {
 // 6. GET SECTION: Charter
 exports.getCharter = async (req, res, next) => {
   try {
-    const page = await AboutUsCMS.findOne({ key: 'about-us' });
+    const page = await AboutUsCMS.findOne({ key: "about-us" });
     res.status(200).json({
-      status: 'success',
-      data: { charter: page?.charter || {} }
+      status: "success",
+      data: { charter: page?.charter || {} },
     });
   } catch (error) {
     next(error);
@@ -273,18 +428,18 @@ exports.updateBanner = async (req, res, next) => {
     }
 
     if (!imageUrl) {
-      const existing = await AboutUsCMS.findOne({ key: 'about-us' });
+      const existing = await AboutUsCMS.findOne({ key: "about-us" });
       if (existing && existing.banner && existing.banner.bannerImage) {
         imageUrl = existing.banner.bannerImage;
       }
     }
 
     const page = await AboutUsCMS.findOneAndUpdate(
-      { key: 'about-us' },
+      { key: "about-us" },
       {
         $set: {
           banner: {
-            bannerImage: imageUrl || '',
+            bannerImage: imageUrl || "",
             bannerLabel: parsedData.bannerLabel,
             bannerTitle: parsedData.bannerTitle,
             bannerDescription: parsedData.bannerDescription,
@@ -292,12 +447,12 @@ exports.updateBanner = async (req, res, next) => {
           },
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     res.status(200).json({
-      status: 'success',
-      message: 'Banner updated successfully.',
+      status: "success",
+      message: "Banner updated successfully.",
       data: { banner: page.banner },
     });
   } catch (error) {
@@ -316,14 +471,14 @@ exports.updateStewardship = async (req, res, next) => {
     }
 
     if (!imageUrl) {
-      const existing = await AboutUsCMS.findOne({ key: 'about-us' });
+      const existing = await AboutUsCMS.findOne({ key: "about-us" });
       if (existing && existing.stewardship && existing.stewardship.image) {
         imageUrl = existing.stewardship.image;
       }
     }
 
     const page = await AboutUsCMS.findOneAndUpdate(
-      { key: 'about-us' },
+      { key: "about-us" },
       {
         $set: {
           stewardship: {
@@ -333,17 +488,17 @@ exports.updateStewardship = async (req, res, next) => {
             quote: parsedData.quote,
             badgeNumber: parsedData.badgeNumber,
             badgeText: parsedData.badgeText,
-            image: imageUrl || '',
+            image: imageUrl || "",
             showSection: parsedData.showSection,
           },
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     res.status(200).json({
-      status: 'success',
-      message: 'Stewardship updated successfully.',
+      status: "success",
+      message: "Stewardship updated successfully.",
       data: { stewardship: page.stewardship },
     });
   } catch (error) {
@@ -357,7 +512,7 @@ exports.updateJourney = async (req, res, next) => {
     const parsedData = journeySchema.parse(req.body);
 
     const page = await AboutUsCMS.findOneAndUpdate(
-      { key: 'about-us' },
+      { key: "about-us" },
       {
         $set: {
           journey: {
@@ -369,12 +524,12 @@ exports.updateJourney = async (req, res, next) => {
           },
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     res.status(200).json({
-      status: 'success',
-      message: 'Journey updated successfully.',
+      status: "success",
+      message: "Journey updated successfully.",
       data: { journey: page.journey },
     });
   } catch (error) {
@@ -388,7 +543,7 @@ exports.updateQuote = async (req, res, next) => {
     const parsedData = quoteSchema.parse(req.body);
 
     const page = await AboutUsCMS.findOneAndUpdate(
-      { key: 'about-us' },
+      { key: "about-us" },
       {
         $set: {
           quote: {
@@ -398,12 +553,12 @@ exports.updateQuote = async (req, res, next) => {
           },
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     res.status(200).json({
-      status: 'success',
-      message: 'Quote updated successfully.',
+      status: "success",
+      message: "Quote updated successfully.",
       data: { quote: page.quote },
     });
   } catch (error) {
@@ -417,7 +572,7 @@ exports.updateCharter = async (req, res, next) => {
     const parsedData = charterSchema.parse(req.body);
 
     const page = await AboutUsCMS.findOneAndUpdate(
-      { key: 'about-us' },
+      { key: "about-us" },
       {
         $set: {
           charter: {
@@ -430,12 +585,12 @@ exports.updateCharter = async (req, res, next) => {
           },
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     res.status(200).json({
-      status: 'success',
-      message: 'Charter updated successfully.',
+      status: "success",
+      message: "Charter updated successfully.",
       data: { charter: page.charter },
     });
   } catch (error) {

@@ -1,11 +1,11 @@
-const User = require('../models/User.model');
+const User = require("../models/User.model");
 
 // 1. GET ALL USERS (Admin Only)
 exports.getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find().select('-password');
+    const users = await User.find().select("-password");
     res.status(200).json({
-      status: 'success',
+      status: "success",
       results: users.length,
       data: {
         users,
@@ -23,16 +23,16 @@ exports.toggleUserStatus = async (req, res, next) => {
 
     if (!user) {
       return res.status(404).json({
-        status: 'fail',
-        message: 'No user found with that ID',
+        status: "fail",
+        message: "No user found with that ID",
       });
     }
 
     // Admins cannot deactivate themselves to avoid lockout
     if (user._id.toString() === req.user._id.toString()) {
       return res.status(400).json({
-        status: 'fail',
-        message: 'Admins cannot deactivate their own account.',
+        status: "fail",
+        message: "Admins cannot deactivate their own account.",
       });
     }
 
@@ -40,8 +40,8 @@ exports.toggleUserStatus = async (req, res, next) => {
     await user.save();
 
     res.status(200).json({
-      status: 'success',
-      message: `User account has been ${user.isActive ? 'activated' : 'deactivated'} successfully.`,
+      status: "success",
+      message: `User account has been ${user.isActive ? "activated" : "deactivated"} successfully.`,
       data: {
         user,
       },

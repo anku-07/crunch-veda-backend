@@ -1,4 +1,4 @@
-const ImageKit = require('imagekit');
+const ImageKit = require("imagekit");
 
 let imagekit;
 
@@ -7,15 +7,17 @@ const getInitializeImageKit = () => {
 
   const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
   const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-  const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/dummy/';
+  const urlEndpoint =
+    process.env.IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/dummy/";
 
   if (
-    !publicKey || !privateKey ||
-    publicKey === 'your_imagekit_public_key' ||
-    privateKey === 'your_imagekit_private_key'
+    !publicKey ||
+    !privateKey ||
+    publicKey === "your_imagekit_public_key" ||
+    privateKey === "your_imagekit_private_key"
   ) {
     throw new Error(
-      'ImageKit credentials are not configured. Please define valid IMAGEKIT_PUBLIC_KEY and IMAGEKIT_PRIVATE_KEY in your .env file.'
+      "ImageKit credentials are not configured. Please define valid IMAGEKIT_PUBLIC_KEY and IMAGEKIT_PRIVATE_KEY in your .env file.",
     );
   }
 
@@ -32,7 +34,7 @@ exports.uploadImage = async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({
-        status: 'fail',
+        status: "fail",
         message: 'No file uploaded. Please upload a file with the key "image".',
       });
     }
@@ -42,20 +44,20 @@ exports.uploadImage = async (req, res, next) => {
       ik = getInitializeImageKit();
     } catch (configError) {
       return res.status(500).json({
-        status: 'error',
+        status: "error",
         message: configError.message,
       });
     }
 
     const uploadResponse = await ik.upload({
       file: req.file.buffer,
-      fileName: `crunchveda_${Date.now()}_${req.file.originalname.replace(/\s+/g, '_')}`,
-      folder: '/crunchveda',
+      fileName: `crunchveda_${Date.now()}_${req.file.originalname.replace(/\s+/g, "_")}`,
+      folder: "/crunchveda",
     });
 
     res.status(200).json({
-      status: 'success',
-      message: 'File uploaded successfully.',
+      status: "success",
+      message: "File uploaded successfully.",
       data: {
         fileId: uploadResponse.fileId,
         name: uploadResponse.name,

@@ -1,7 +1,7 @@
-const express = require('express');
-const multer = require('multer');
-const giftsController = require('../controllers/giftsController');
-const { protect, adminOnly } = require('../middlewares/authMiddleware');
+const express = require("express");
+const multer = require("multer");
+const giftsController = require("../controllers/giftsController");
+const { protect, adminOnly } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
@@ -15,12 +15,30 @@ const upload = multer({
 });
 
 // --- PUBLIC ROUTES ---
-router.get('/', giftsController.getGiftsPage);
+router.get("/", giftsController.getGiftsPage);
 
 // --- PROTECTED ADMIN ROUTES ---
-router.put('/banner', protect, adminOnly, giftsController.updateBanner);
-router.put('/gift-collections', protect, adminOnly, upload.any(), giftsController.updateGiftCollections);
-router.put('/custom-chest', protect, adminOnly, upload.single('image'), giftsController.updateCustomChest);
-router.put('/gift-products', protect, adminOnly, upload.any(), giftsController.updateGiftProducts);
+router.put("/banner", protect, adminOnly, giftsController.updateBanner);
+router.put(
+  "/gift-collections",
+  protect,
+  adminOnly,
+  upload.any(),
+  giftsController.updateGiftCollections,
+);
+router.put(
+  "/custom-chest",
+  protect,
+  adminOnly,
+  upload.single("image"),
+  giftsController.updateCustomChest,
+);
+router.put(
+  "/gift-products",
+  protect,
+  adminOnly,
+  upload.any(),
+  giftsController.updateGiftProducts,
+);
 
 module.exports = router;

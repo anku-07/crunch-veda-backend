@@ -1,64 +1,64 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const giftsCMSSchema = new mongoose.Schema(
   {
     key: {
       type: String,
-      default: 'gifts',
+      default: "gifts",
       unique: true,
     },
     banner: {
       bannerLabel: {
         type: String,
-        default: '',
+        default: "",
       },
       bannerTitle: {
         type: String,
-        default: '',
+        default: "",
       },
       bannerDescription: {
         type: String,
-        default: '',
+        default: "",
       },
     },
     giftCollections: {
       sectionTitle: {
         type: String,
-        default: '',
+        default: "",
       },
       sectionButtonText: {
         type: String,
-        default: '',
+        default: "",
       },
       sectionButtonLink: {
         type: String,
-        default: '',
+        default: "",
       },
       collections: [
         {
           image: {
             type: String,
-            default: '',
+            default: "",
           },
           label: {
             type: String,
-            default: '',
+            default: "",
           },
           title: {
             type: String,
-            default: '',
+            default: "",
           },
           description: {
             type: String,
-            default: '',
+            default: "",
           },
           buttonText: {
             type: String,
-            default: '',
+            default: "",
           },
           buttonLink: {
             type: String,
-            default: '',
+            default: "",
           },
         },
       ],
@@ -66,27 +66,27 @@ const giftsCMSSchema = new mongoose.Schema(
     customChest: {
       sectionLabel: {
         type: String,
-        default: '',
+        default: "",
       },
       sectionTitle: {
         type: String,
-        default: '',
+        default: "",
       },
       sectionDescription: {
         type: String,
-        default: '',
+        default: "",
       },
       buttonText: {
         type: String,
-        default: '',
+        default: "",
       },
       buttonLink: {
         type: String,
-        default: '',
+        default: "",
       },
       backgroundImage: {
         type: String,
-        default: '',
+        default: "",
       },
     },
     giftProducts: {
@@ -94,25 +94,25 @@ const giftsCMSSchema = new mongoose.Schema(
         {
           categoryTitle: {
             type: String,
-            default: '',
+            default: "",
           },
           products: [
             {
               image: {
                 type: String,
-                default: '',
+                default: "",
               },
               title: {
                 type: String,
-                default: '',
+                default: "",
               },
               description: {
                 type: String,
-                default: '',
+                default: "",
               },
               price: {
                 type: String,
-                default: '',
+                default: "",
               },
             },
           ],
@@ -122,7 +122,7 @@ const giftsCMSSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-module.exports = mongoose.model('GiftsCMS', giftsCMSSchema);
+module.exports = mongoose.model("GiftsCMS", giftsCMSSchema);

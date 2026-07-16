@@ -1,10 +1,10 @@
-const GiftsCMS = require('../models/GiftsCMS.model');
-const { z } = require('zod');
+const GiftsCMS = require("../models/GiftsCMS.model");
+const { z } = require("zod");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const parseJSONField = (value) => {
-  if (typeof value !== 'string') return value;
+  if (typeof value !== "string") return value;
   try {
     return JSON.parse(value);
   } catch (error) {
@@ -12,24 +12,28 @@ const parseJSONField = (value) => {
   }
 };
 
-const uploadImageToImageKit = async (file, folder = '/crunchveda/gifts') => {
+const uploadImageToImageKit = async (file, folder = "/crunchveda/gifts") => {
   if (!file) return null;
 
   const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
   const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-  const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/dummy/';
+  const urlEndpoint =
+    process.env.IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/dummy/";
 
   if (
-    !publicKey || !privateKey ||
-    publicKey === 'your_imagekit_public_key' ||
-    privateKey === 'your_imagekit_private_key'
+    !publicKey ||
+    !privateKey ||
+    publicKey === "your_imagekit_public_key" ||
+    privateKey === "your_imagekit_private_key"
   ) {
-    const error = new Error('ImageKit credentials are not configured. Please define valid IMAGEKIT_PUBLIC_KEY and IMAGEKIT_PRIVATE_KEY in your .env file.');
+    const error = new Error(
+      "ImageKit credentials are not configured. Please define valid IMAGEKIT_PUBLIC_KEY and IMAGEKIT_PRIVATE_KEY in your .env file.",
+    );
     error.statusCode = 500;
     throw error;
   }
 
-  const ImageKit = require('imagekit');
+  const ImageKit = require("imagekit");
   const ik = new ImageKit({
     publicKey,
     privateKey,
@@ -38,7 +42,7 @@ const uploadImageToImageKit = async (file, folder = '/crunchveda/gifts') => {
 
   const uploadResponse = await ik.upload({
     file: file.buffer,
-    fileName: `gifts_${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`,
+    fileName: `gifts_${Date.now()}_${file.originalname.replace(/\s+/g, "_")}`,
     folder: folder,
   });
 
@@ -48,10 +52,10 @@ const uploadImageToImageKit = async (file, folder = '/crunchveda/gifts') => {
 const handleZodError = (error, res, next) => {
   if (error instanceof z.ZodError) {
     return res.status(400).json({
-      status: 'fail',
-      message: 'Validation failed',
+      status: "fail",
+      message: "Validation failed",
       errors: error.issues.map((err) => ({
-        field: err.path.join('.'),
+        field: err.path.join("."),
         message: err.message,
       })),
     });
@@ -59,7 +63,7 @@ const handleZodError = (error, res, next) => {
 
   if (error.statusCode) {
     return res.status(error.statusCode).json({
-      status: 'fail',
+      status: "fail",
       message: error.message,
     });
   }
@@ -70,55 +74,61 @@ const handleZodError = (error, res, next) => {
 // ── Zod Schemas ──────────────────────────────────────────────────────────────
 
 const bannerSchema = z.object({
-  bannerLabel: z.string().optional().default(''),
-  bannerTitle: z.string().min(1, 'bannerTitle is required'),
-  bannerDescription: z.string().optional().default(''),
+  bannerLabel: z.string().optional().default(""),
+  bannerTitle: z.string().min(1, "bannerTitle is required"),
+  bannerDescription: z.string().optional().default(""),
 });
 
 const giftCollectionsSchema = z.object({
-  sectionTitle: z.string().min(1, 'sectionTitle is required'),
-  sectionButtonText: z.string().optional().default(''),
-  sectionButtonLink: z.string().optional().default(''),
+  sectionTitle: z.string().min(1, "sectionTitle is required"),
+  sectionButtonText: z.string().optional().default(""),
+  sectionButtonLink: z.string().optional().default(""),
   collections: z.preprocess(
     (val) => parseJSONField(val),
-    z.array(
-      z.object({
-        image: z.string().optional().default(''),
-        label: z.string().optional().default(''),
-        title: z.string().optional().default(''),
-        description: z.string().optional().default(''),
-        buttonText: z.string().optional().default(''),
-        buttonLink: z.string().optional().default(''),
-      })
-    ).default([])
+    z
+      .array(
+        z.object({
+          image: z.string().optional().default(""),
+          label: z.string().optional().default(""),
+          title: z.string().optional().default(""),
+          description: z.string().optional().default(""),
+          buttonText: z.string().optional().default(""),
+          buttonLink: z.string().optional().default(""),
+        }),
+      )
+      .default([]),
   ),
 });
 
 const customChestSchema = z.object({
-  sectionLabel: z.string().optional().default(''),
-  sectionTitle: z.string().min(1, 'sectionTitle is required'),
-  sectionDescription: z.string().optional().default(''),
-  buttonText: z.string().optional().default(''),
-  buttonLink: z.string().optional().default(''),
+  sectionLabel: z.string().optional().default(""),
+  sectionTitle: z.string().min(1, "sectionTitle is required"),
+  sectionDescription: z.string().optional().default(""),
+  buttonText: z.string().optional().default(""),
+  buttonLink: z.string().optional().default(""),
   backgroundImage: z.string().optional(),
 });
 
 const giftProductsSchema = z.object({
   categories: z.preprocess(
     (val) => parseJSONField(val),
-    z.array(
-      z.object({
-        categoryTitle: z.string().optional().default(''),
-        products: z.array(
-          z.object({
-            image: z.string().optional().default(''),
-            title: z.string().optional().default(''),
-            description: z.string().optional().default(''),
-            price: z.string().optional().default(''),
-          })
-        ).default([]),
-      })
-    ).default([])
+    z
+      .array(
+        z.object({
+          categoryTitle: z.string().optional().default(""),
+          products: z
+            .array(
+              z.object({
+                image: z.string().optional().default(""),
+                title: z.string().optional().default(""),
+                description: z.string().optional().default(""),
+                price: z.string().optional().default(""),
+              }),
+            )
+            .default([]),
+        }),
+      )
+      .default([]),
   ),
 });
 
@@ -126,38 +136,38 @@ const giftProductsSchema = z.object({
 
 exports.getGiftsPage = async (req, res, next) => {
   try {
-    let page = await GiftsCMS.findOne({ key: 'gifts' });
+    let page = await GiftsCMS.findOne({ key: "gifts" });
 
     if (!page) {
       page = await GiftsCMS.create({
-        key: 'gifts',
+        key: "gifts",
         banner: {
-          bannerLabel: '',
-          bannerTitle: '',
-          bannerDescription: '',
+          bannerLabel: "",
+          bannerTitle: "",
+          bannerDescription: "",
         },
       });
     }
 
     res.status(200).json({
       banner: {
-        bannerLabel: page.banner.bannerLabel || '',
-        bannerTitle: page.banner.bannerTitle || '',
-        bannerDescription: page.banner.bannerDescription || '',
+        bannerLabel: page.banner.bannerLabel || "",
+        bannerTitle: page.banner.bannerTitle || "",
+        bannerDescription: page.banner.bannerDescription || "",
       },
       giftCollections: {
-        sectionTitle: page.giftCollections?.sectionTitle || '',
-        sectionButtonText: page.giftCollections?.sectionButtonText || '',
-        sectionButtonLink: page.giftCollections?.sectionButtonLink || '',
+        sectionTitle: page.giftCollections?.sectionTitle || "",
+        sectionButtonText: page.giftCollections?.sectionButtonText || "",
+        sectionButtonLink: page.giftCollections?.sectionButtonLink || "",
         collections: page.giftCollections?.collections || [],
       },
       customChest: {
-        sectionLabel: page.customChest?.sectionLabel || '',
-        sectionTitle: page.customChest?.sectionTitle || '',
-        sectionDescription: page.customChest?.sectionDescription || '',
-        buttonText: page.customChest?.buttonText || '',
-        buttonLink: page.customChest?.buttonLink || '',
-        backgroundImage: page.customChest?.backgroundImage || '',
+        sectionLabel: page.customChest?.sectionLabel || "",
+        sectionTitle: page.customChest?.sectionTitle || "",
+        sectionDescription: page.customChest?.sectionDescription || "",
+        buttonText: page.customChest?.buttonText || "",
+        buttonLink: page.customChest?.buttonLink || "",
+        backgroundImage: page.customChest?.backgroundImage || "",
       },
       giftProducts: {
         categories: page.giftProducts?.categories || [],
@@ -175,7 +185,7 @@ exports.updateBanner = async (req, res, next) => {
     const parsedData = bannerSchema.parse(req.body);
 
     const page = await GiftsCMS.findOneAndUpdate(
-      { key: 'gifts' },
+      { key: "gifts" },
       {
         $set: {
           banner: {
@@ -185,12 +195,12 @@ exports.updateBanner = async (req, res, next) => {
           },
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     res.status(200).json({
-      status: 'success',
-      message: 'Gifts banner updated successfully.',
+      status: "success",
+      message: "Gifts banner updated successfully.",
       data: {
         banner: page.banner,
       },
@@ -206,11 +216,12 @@ exports.updateGiftCollections = async (req, res, next) => {
   try {
     const parsedData = giftCollectionsSchema.parse(req.body);
 
-    const existingPage = await GiftsCMS.findOne({ key: 'gifts' });
-    const existingCollections = existingPage?.giftCollections?.collections || [];
+    const existingPage = await GiftsCMS.findOne({ key: "gifts" });
+    const existingCollections =
+      existingPage?.giftCollections?.collections || [];
 
     const arrayFiles = (req.files || []).filter(
-      (f) => f.fieldname === 'images' || f.fieldname === 'collection_images'
+      (f) => f.fieldname === "images" || f.fieldname === "collection_images",
     );
 
     const updatedCollections = await Promise.all(
@@ -220,7 +231,7 @@ exports.updateGiftCollections = async (req, res, next) => {
             f.fieldname === `collection_image_${index}` ||
             f.fieldname === `collections[${index}][image]` ||
             f.fieldname === `collections[${index}].image` ||
-            f.fieldname === `image_${index}`
+            f.fieldname === `image_${index}`,
         );
 
         const fallbackFile = file || arrayFiles[index];
@@ -230,7 +241,7 @@ exports.updateGiftCollections = async (req, res, next) => {
         if (fallbackFile) {
           imageUrl = await uploadImageToImageKit(fallbackFile);
         } else if (!imageUrl) {
-          imageUrl = existingCollections[index]?.image || '';
+          imageUrl = existingCollections[index]?.image || "";
         }
 
         return {
@@ -241,11 +252,11 @@ exports.updateGiftCollections = async (req, res, next) => {
           buttonText: collection.buttonText,
           buttonLink: collection.buttonLink,
         };
-      })
+      }),
     );
 
     const page = await GiftsCMS.findOneAndUpdate(
-      { key: 'gifts' },
+      { key: "gifts" },
       {
         $set: {
           giftCollections: {
@@ -256,12 +267,12 @@ exports.updateGiftCollections = async (req, res, next) => {
           },
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     res.status(200).json({
-      status: 'success',
-      message: 'Gift collections updated successfully.',
+      status: "success",
+      message: "Gift collections updated successfully.",
       data: {
         giftCollections: page.giftCollections,
       },
@@ -284,14 +295,18 @@ exports.updateCustomChest = async (req, res, next) => {
     }
 
     if (!imageUrl) {
-      const existing = await GiftsCMS.findOne({ key: 'gifts' });
-      if (existing && existing.customChest && existing.customChest.backgroundImage) {
+      const existing = await GiftsCMS.findOne({ key: "gifts" });
+      if (
+        existing &&
+        existing.customChest &&
+        existing.customChest.backgroundImage
+      ) {
         imageUrl = existing.customChest.backgroundImage;
       }
     }
 
     const page = await GiftsCMS.findOneAndUpdate(
-      { key: 'gifts' },
+      { key: "gifts" },
       {
         $set: {
           customChest: {
@@ -300,16 +315,16 @@ exports.updateCustomChest = async (req, res, next) => {
             sectionDescription: parsedData.sectionDescription,
             buttonText: parsedData.buttonText,
             buttonLink: parsedData.buttonLink,
-            backgroundImage: imageUrl || '',
+            backgroundImage: imageUrl || "",
           },
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     res.status(200).json({
-      status: 'success',
-      message: 'Custom chest section updated successfully.',
+      status: "success",
+      message: "Custom chest section updated successfully.",
       data: {
         customChest: page.customChest,
       },
@@ -325,7 +340,7 @@ exports.updateGiftProducts = async (req, res, next) => {
   try {
     const parsedData = giftProductsSchema.parse(req.body);
 
-    const existingPage = await GiftsCMS.findOne({ key: 'gifts' });
+    const existingPage = await GiftsCMS.findOne({ key: "gifts" });
     const existingCategories = existingPage?.giftProducts?.categories || [];
 
     const updatedCategories = await Promise.all(
@@ -336,8 +351,10 @@ exports.updateGiftProducts = async (req, res, next) => {
             const file = (req.files || []).find(
               (f) =>
                 f.fieldname === `product_image_${catIndex}_${prodIndex}` ||
-                f.fieldname === `categories[${catIndex}][products][${prodIndex}][image]` ||
-                f.fieldname === `categories[${catIndex}].products[${prodIndex}].image`
+                f.fieldname ===
+                  `categories[${catIndex}][products][${prodIndex}][image]` ||
+                f.fieldname ===
+                  `categories[${catIndex}].products[${prodIndex}].image`,
             );
 
             let imageUrl = product.image;
@@ -345,7 +362,9 @@ exports.updateGiftProducts = async (req, res, next) => {
             if (file) {
               imageUrl = await uploadImageToImageKit(file);
             } else if (!imageUrl) {
-              imageUrl = existingCategories[catIndex]?.products?.[prodIndex]?.image || '';
+              imageUrl =
+                existingCategories[catIndex]?.products?.[prodIndex]?.image ||
+                "";
             }
 
             return {
@@ -354,18 +373,18 @@ exports.updateGiftProducts = async (req, res, next) => {
               description: product.description,
               price: product.price,
             };
-          })
+          }),
         );
 
         return {
           categoryTitle: category.categoryTitle,
           products: updatedProducts,
         };
-      })
+      }),
     );
 
     const page = await GiftsCMS.findOneAndUpdate(
-      { key: 'gifts' },
+      { key: "gifts" },
       {
         $set: {
           giftProducts: {
@@ -373,12 +392,12 @@ exports.updateGiftProducts = async (req, res, next) => {
           },
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     res.status(200).json({
-      status: 'success',
-      message: 'Gift products updated successfully.',
+      status: "success",
+      message: "Gift products updated successfully.",
       data: {
         giftProducts: page.giftProducts,
       },
