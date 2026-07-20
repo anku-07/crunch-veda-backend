@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User.model");
+const { sendWelcomeEmail } = require("../services/email.service");
 
 const registerUser = async (req, res) => {
   try {
@@ -33,6 +34,9 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       phone,
     });
+
+    // Send registration welcome email using SMTP config from .env
+    sendWelcomeEmail(user);
 
     res.status(201).json({
       success: true,
